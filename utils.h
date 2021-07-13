@@ -1,0 +1,1 @@
+void must_alloc(void *ptr, const char* desc);
