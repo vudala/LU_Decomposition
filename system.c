@@ -1,47 +1,26 @@
-#include "utils.h"
-#include "system.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
 
-float **new_matrix(unsigned int n)
-{
-    float **new = (float**) malloc(sizeof(float*) * n);
-    must_alloc(new, "new matrix");
+#include "system.h"
+#include "matrix.h"
+#include "utils.h"
 
-    new[0] = (float*) calloc(n * n, sizeof(float));
-    must_alloc(new[0], "new matrix");
-
-    for (int i = 0; i < n; i++)
-        new[i] = new[0] + i * n;
-
-    return new;
-}
-
-
-float **set_identity(float **matrix, unsigned int n)
-{
-    for (int i = 0; i < n; i++)
-        matrix[i][i] = 1;
-    return matrix;
-}
-
-
-System *new_system(unsigned int n)
+System *new_system (unsigned int n)
 {
     System *new = (System*) malloc(sizeof(System));
-    must_alloc(new, "new_system");
+    must_alloc(new, __func__);
 
     new->L = set_identity(new_matrix(n), n);
-    new->U = new_matrix(n);
+    new->A = new_matrix(n);
     new->n = n;
 
     return new;
 }
 
 
-System *read_system()
+System *read_system ()
 {
     unsigned int n;
     fscanf(stdin, "%u\n", &n);
@@ -52,48 +31,63 @@ System *read_system()
     int i, j;
     for (i = 0; i < n; i++)
         for (j = 0; j < n; j++)
-            fscanf(stdin, "%f", &(sys->U[i][j]));
+            fscanf(stdin, "%f", &(sys->A[i][j]));
+
+    sys->U = clone_matrix(sys->A, sys->n);
 
     return sys;
 }
 
 
-void print_matrix(float **m, unsigned int n)
-{
-    int i, j;
-    for (i = 0; i < n; i++)
-    {
-        for (j = 0; j < n; j++)
-            printf("%f ", m[i][j]);
-        printf("\n");
-    }
-}
-
-
-void free_matrix(float **mat)
-{
-    free(mat[0]);
-    free(mat);
-}
-
-
-void free_system(System *sys)
+void free_system (System *sys)
 {
     free_matrix(sys->L);
     free_matrix(sys->U);
     free(sys);
 }
 
-
-void fatoracao (System *sys)
+void pivoting(float **A, float *b, unsigned int n)
 {
+    float max, aux;
+    unsigned int max_index;
+    int i, k;
+
+    for (int k = 0; k < n - 1; k++)
+    {
+        max_index = k;
+        max = fabs(A[k][k]);
+        for (i = k + 1; i < n; i++)
+            if (fabs(A[i][k]) > max)
+                max_index = i;
+
+        if (max_index != k)
+        { // Se terminou em um índice diferente de onde começou, troca
+            for (int c = 0; c < n; c++)
+            {
+                aux = A[k][c];
+                A[k][c] = A[max_index][c];
+                A[max_index][c] = aux;
+            }
+
+            if (b)
+            {
+                aux = b[k];
+                b[k] = b[max_index];
+                b[max_index] = aux;
+            }
+        }
+    }
+}
+
+
+double triangularization (System *sys)
+{
+    double time_tri = timestamp();
     int i, k, j;
     double m;
     
     for (k = 0; k < sys->n - 1; k++)
     {
-        /// PIVOTEAMENTO PORRAAAAAA
-
         for (i = k + 1; i < sys->n; i++)
         {
             m = sys->U[i][k] / sys->U[k][k];
@@ -105,9 +99,14 @@ void fatoracao (System *sys)
                 sys->U[i][j] -= (m * sys->U[k][j]);
         }
     }
+
+    time_tri = timestamp() - time_tri;
+
+    return time_tri;
 }
 
-int retrosubs(float **A, float *b, unsigned int n)
+
+int retrosubs (float **A, float *b, unsigned int n)
 {
     for (int i = n - 1; i >= 0; i--)
     {
@@ -122,52 +121,22 @@ int retrosubs(float **A, float *b, unsigned int n)
     return 0;
 }
 
-float **clone_matrix(float **m, unsigned int n)
-{   
-    float **clone = (float**) malloc(sizeof(float*) * n);
-    must_alloc(clone, __func__);
-    
-    clone[0] = malloc(sizeof(float) * n * n);
-    must_alloc(clone[0], __func__);
 
-    for (int i = 0; i < n; i++)
-        clone[i] = clone[0] + i * n;
-
-    memcpy(clone[0], m[0], sizeof(float) * n * n);
-
-    return clone;
-}
-
-int eliminacaoGauss (float **A, float *x, float *b, unsigned int n)
+int gauss_jordan (float **A, float *x, float *b, unsigned int n)
 {
-
-    int i, k, j, result;
-
     float **clone = clone_matrix(A, n);
+    float *b_clone = malloc(sizeof(float) * n);
+    must_alloc(b_clone, __func__);
+
+    memcpy(b_clone, b, sizeof(float) * n);
+
+    int i, k, j;
     double m;
     
     // Triangula usando o pivoteamento parcial
-    for (k = 0; k < n - 1; k++){
-        unsigned int max_index = k;
-        float max = fabs(clone[k][k]);
-        for (i = k + 1; i < n; i++)
-            if (fabs(clone[i][k]) > max)
-                max_index = i;
-
-        if (max_index != k){ // Se terminou em um índice diferente de onde começou, troca
-            float aux;
-            for (int c = 0; c < n; c++)
-            {
-                aux = clone[k][c];
-                clone[k][c] = clone[max_index][c];
-                clone[max_index][c] = aux;
-            }
-
-            aux = b[k];
-            b[k] = b[max_index];
-            b[max_index] = aux;
-        }
-
+    for (k = 0; k < n - 1; k++)
+    {
+        pivoting(clone, b_clone, n);
         for (i = k + 1; i < n; i++)
         {
             m = clone[i][k] / clone[k][k];
@@ -176,13 +145,130 @@ int eliminacaoGauss (float **A, float *x, float *b, unsigned int n)
             for (j = k + 1; j < n; j++)
                 clone[i][j] -= (m * clone[k][j]);
                 
-            b[i] -= m * b[k];
+            b_clone[i] -= m * b_clone[k];
         }
     }
 
-    result = retrosubs(clone, b, n);
+    retrosubs(clone, b_clone, n);
     
-    memcpy(x, b, sizeof(float) * n);
+    memcpy(x, b_clone, sizeof(float) * n);
 
     return 0;
+}
+
+double get_y(System *sys, float **y)
+{
+    double time_y, total_time = 0.0f;
+    float **B = set_identity(new_matrix(sys->n), sys->n);
+
+    for (int i = 0; i < sys->n; i++){
+        time_y = timestamp();
+        gauss_jordan(sys->L, y[i], B[i], sys->n);
+        time_y = timestamp() - time_y;
+
+        total_time += time_y;
+    }
+
+    free_matrix(B);
+
+    return (double) (total_time / sys->n);
+}
+
+
+
+float *get_column(float **mat, unsigned int n, unsigned int col)
+{
+    print_matrix(mat, n, 0);
+    printf("\n");
+    printf("\n");
+    
+    float *column = (float*) malloc(sizeof(float) * n);
+    must_alloc(column, __func__);
+
+    for (int i = 0; i < n; i++){
+        column[i] = mat[i][col];
+        printf("%f ", column[i]);
+    }
+    printf("\n");
+    printf("\n");
+        
+
+
+    return column;
+}
+
+double get_x(System *sys, float **y, float **x)
+{    
+    double time_x, total_time = 0.0f;
+     
+    for (int i = 0; i < sys->n; i++){
+        time_x = timestamp();
+        gauss_jordan(sys->U, x[i], get_column(y, sys->n, i), sys->n);
+        time_x = timestamp() - time_x;
+
+        total_time += time_x;
+    }
+
+    return (double) (total_time / sys->n);
+}
+
+
+// Calcula o resíduo de um sistema linear e sua solução
+float *residue(System *sys, float *y, float *x)
+{
+    float *res = malloc(sys->n * sizeof(float));
+    must_alloc(res, __func__);
+
+    int i, k;
+    double ax;
+
+    for (i = 0; i < sys->n; i++){
+        ax = 0.0f;
+        for (k = 0; k < sys->n; k++)
+            ax += sys->A[i][k] * x[k];
+        res[i] = y[i] - ax;
+    }
+    
+    return res;
+}
+
+float residue_norm(System *sys, float *res)
+{
+    float sum = 0.0f;
+    for (int i = 0; i < sys->n; i++)
+        sum += pow(res[i], 2.0f); 
+    return sqrt(sum);
+}
+
+
+void print_residues(System *sys, float **y, float **x)
+{
+    float norm;
+    float *res = NULL;
+
+    for (int i = 0; i < sys->n; i++)
+    {
+        res = residue(sys, y[i], x[i]);
+        norm = residue_norm(sys, res);
+        free(res);
+        printf("%f ", norm);
+    }
+
+    printf("\n");
+}
+
+
+void print_result(System *sys, float **inverse, double time_tri, double time_y, double time_x, float **y, float **x)
+{
+    printf("%u\n", sys->n);
+    print_matrix(sys->A, sys->n, 0);
+    printf("#\n");
+    print_matrix(inverse, sys->n, 1);
+    printf("###########\n");
+    printf("# Tempo Triangularização: %1.9f\n", time_tri);
+    printf("# Tempo cálculo de Y: %1.9f\n", time_y);
+    printf("# Tempo cálculo de X: %1.9f\n", time_x);
+    printf("# Norma L2 do Residuo: ");
+    print_residues(sys, y, x);
+    printf("###########\n");
 }

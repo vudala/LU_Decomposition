@@ -1,37 +1,41 @@
 #include <stdio.h>
-#include "system.h"
-#include "utils.h"
 #include <stdlib.h>
 
-
-void print_vetor(float *v, int n)
-{
-    
-}
+#include "system.h"
+#include "matrix.h"
+#include "utils.h"
 
 int main()
 {
     while (!feof(stdin))
     {
+        double time_tri, time_y, time_x;
         System *sys = read_system();
-        fatoracao(sys);
+
+        // Separa o sistema em L e U
+        time_tri = triangularization(sys);
         
-        float **B = set_identity(new_matrix(sys->n), sys->n);
-        float *y = malloc(sizeof(float) * sys->n);
-        must_alloc(y, "y");
+        float **y = new_matrix(sys->n);
+        float **inverse = new_matrix(sys->n);
 
-        float **inversa = new_matrix(sys->n);
+        // Calcula Y
+        time_y = get_y(sys, y);
 
-        for (int i = 0; i < sys->n; i++)
-        {    
-            eliminacaoGauss(sys->L, y, B[i], sys->n);
-            eliminacaoGauss(sys->U, inversa[i], y, sys->n);
-        }
+        // Calcula X, que é a inversa
+        time_x = get_x(sys, y, inverse);
+        
+        // Imprime os resultados
+        //print_result(sys, inverse, time_tri, time_y, time_x, y, inverse);
 
-        print_matrix(inversa, sys->n);
+        print_matrix(inverse, sys->n, 0);
 
         free_system(sys);
+        free_matrix(y);
+        free_matrix(inverse);
+
         sys = NULL;
+        y = NULL;
+        inverse = NULL;
     }
 
     return 0;
