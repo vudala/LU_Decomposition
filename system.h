@@ -24,9 +24,9 @@ double triangularization (System *sys);
 int gauss_jordan (float **A, float *x, float *b, unsigned int n);
 
 // Imprime os resultados em stdout
-void print_result(System *sys, float **inverse, double time_tri, double time_y, double time_x, float **y, float **x);
+void print_result (System *sys, float **inverse, double time_tri, double time_y, double time_x, float **y, float **x);
 
 // Calcula a inversa do sistema linear
-void invert(System *sys, float **x, double *x_total_time, double *y_total_time);
+void invert (System *sys, float **x, double *x_total_time, double *y_total_time);
 
 #endif

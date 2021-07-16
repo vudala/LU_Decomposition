@@ -48,7 +48,7 @@ void free_system (System *sys)
 }
 
 
-void pivoting(float **A, float *b, unsigned int n)
+void pivoting (float **A, float *b, unsigned int n)
 {
     float max, aux;
     unsigned int max_index;
@@ -162,7 +162,7 @@ int gauss_jordan (float **A, float *x, float *b, unsigned int n)
 }
 
 
-void invert(System *sys, float **x, double *x_total_time, double *y_total_time)
+void invert (System *sys, float **x, double *x_total_time, double *y_total_time)
 {
     double time_y, time_x;
 
@@ -193,7 +193,7 @@ void invert(System *sys, float **x, double *x_total_time, double *y_total_time)
 
 
 // Calcula o resíduo de um sistema linear e sua solução
-float *residue(System *sys, float *y, float *x)
+float *residue (System *sys, float *y, float *x)
 {
     float *res = malloc(sys->n * sizeof(float));
     must_alloc(res, __func__);
@@ -212,7 +212,7 @@ float *residue(System *sys, float *y, float *x)
 }
 
 
-float residue_norm(System *sys, float *res)
+float residue_norm (System *sys, float *res)
 {
     float sum = 0.0f;
     for (int i = 0; i < sys->n; i++)
@@ -221,7 +221,7 @@ float residue_norm(System *sys, float *res)
 }
 
 
-void print_residues(System *sys, float **y, float **x)
+void print_residues (System *sys, float **y, float **x)
 {
     float norm;
     float *res = NULL;
@@ -238,7 +238,7 @@ void print_residues(System *sys, float **y, float **x)
 }
 
 
-void print_result(System *sys, float **inverse, double time_tri, double time_y, double time_x, float **y, float **x)
+void print_result (System *sys, float **inverse, double time_tri, double time_y, double time_x, float **y, float **x)
 {
     printf("%u\n", sys->n);
     print_matrix(sys->A, sys->n, 0);

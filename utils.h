@@ -5,9 +5,9 @@
 #include <sys/time.h>
 
 // Certifica que um ponteiro foi alocado
-void must_alloc(void *ptr, const char* desc);
+void must_alloc (void *ptr, const char* desc);
 
 // Retorna o horário atual em ms
-double timestamp(void);
+double timestamp (void);
 
 #endif

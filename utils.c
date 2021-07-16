@@ -3,7 +3,7 @@
 
 #include "utils.h"
 
-void must_alloc(void *ptr, const char* desc)
+void must_alloc (void *ptr, const char* desc)
 {
     if (!ptr)
     {
@@ -13,7 +13,7 @@ void must_alloc(void *ptr, const char* desc)
 }
 
 
-double timestamp(void)
+double timestamp (void)
 {
   struct timeval tp;
   gettimeofday(&tp, NULL);
