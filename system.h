@@ -20,20 +20,13 @@ void free_system (System *sys);
 // Realiza a triangularização
 double triangularization (System *sys);
 
-// Retorna o tempo de execução e calcula a matriz Y
-double get_y(System *sys, float **y);
-
-// Retorna o tempo de execução e calcula a matriz X
-double get_x(System *sys, float **y, float **x);
-
 // Resolve um sistema através do método de Gauss-Jordan
 int gauss_jordan (float **A, float *x, float *b, unsigned int n);
 
 // Imprime os resultados em stdout
 void print_result(System *sys, float **inverse, double time_tri, double time_y, double time_x, float **y, float **x);
 
-void pivoting(float **A, float *b, unsigned int n);
-
-
+// Calcula a inversa do sistema linear
+void invert(System *sys, float **x, double *x_total_time, double *y_total_time);
 
 #endif

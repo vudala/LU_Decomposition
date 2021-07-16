@@ -156,60 +156,34 @@ int gauss_jordan (float **A, float *x, float *b, unsigned int n)
     return 0;
 }
 
-double get_y(System *sys, float **y)
+
+void invert(System *sys, float **x, double *x_total_time, double *y_total_time)
 {
-    double time_y, total_time = 0.0f;
+    double time_y, time_x;
+
     float **B = set_identity(new_matrix(sys->n), sys->n);
+
+    float *y = malloc(sizeof(float) * sys->n);
+    must_alloc(y, __func__);
 
     for (int i = 0; i < sys->n; i++){
         time_y = timestamp();
-        gauss_jordan(sys->L, y[i], B[i], sys->n);
+        gauss_jordan(sys->L, y, B[i], sys->n);
         time_y = timestamp() - time_y;
 
-        total_time += time_y;
-    }
-
-    free_matrix(B);
-
-    return (double) (total_time / sys->n);
-}
-
-
-
-float *get_column(float **mat, unsigned int n, unsigned int col)
-{
-    print_matrix(mat, n, 0);
-    printf("\n");
-    printf("\n");
-    
-    float *column = (float*) malloc(sizeof(float) * n);
-    must_alloc(column, __func__);
-
-    for (int i = 0; i < n; i++){
-        column[i] = mat[i][col];
-        printf("%f ", column[i]);
-    }
-    printf("\n");
-    printf("\n");
-        
-
-
-    return column;
-}
-
-double get_x(System *sys, float **y, float **x)
-{    
-    double time_x, total_time = 0.0f;
-     
-    for (int i = 0; i < sys->n; i++){
         time_x = timestamp();
-        gauss_jordan(sys->U, x[i], get_column(y, sys->n, i), sys->n);
+        gauss_jordan(sys->U, x[i], y, sys->n);
         time_x = timestamp() - time_x;
 
-        total_time += time_x;
+        *y_total_time += time_y;
+        *x_total_time += time_x;
     }
 
-    return (double) (total_time / sys->n);
+    *y_total_time /= sys->n;
+    *x_total_time /= sys->n;
+
+    free_matrix(B);
+    free(y);
 }
 
 
@@ -236,7 +210,7 @@ float residue_norm(System *sys, float *res)
 {
     float sum = 0.0f;
     for (int i = 0; i < sys->n; i++)
-        sum += pow(res[i], 2.0f); 
+        sum += pow(res[i], 2.0f);
     return sqrt(sum);
 }
 
