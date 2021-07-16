@@ -3,7 +3,7 @@ RM = rm -f
 OBJS = main.o system.o matrix.o utils.o
 LIBS = -lm
 OUTPUT = matrixInv
-CFLAGS = -g
+CFLAGS = 
 
 all: $(OBJS)
 	$(CC) $(CFLAGS) $(OBJS) $(LIBS) -o $(OUTPUT)
