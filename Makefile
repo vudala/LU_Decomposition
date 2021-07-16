@@ -1,11 +1,9 @@
-
-
 CC = gcc
 RM = rm -f
 OBJS = main.o system.o matrix.o utils.o
 LIBS = -lm
 OUTPUT = fatoracao
-CFLAGS = -g 
+CFLAGS =
 
 all: $(OBJS)
 	$(CC) $(OBJS) $(LIBS) -o $(OUTPUT)
