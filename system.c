@@ -41,10 +41,12 @@ System *read_system ()
 
 void free_system (System *sys)
 {
+    free_matrix(sys->A);
     free_matrix(sys->L);
     free_matrix(sys->U);
     free(sys);
 }
+
 
 void pivoting(float **A, float *b, unsigned int n)
 {
@@ -153,6 +155,9 @@ int gauss_jordan (float **A, float *x, float *b, unsigned int n)
     
     memcpy(x, b_clone, sizeof(float) * n);
 
+    free_matrix(clone);
+    free(b_clone);
+    
     return 0;
 }
 
@@ -205,6 +210,7 @@ float *residue(System *sys, float *y, float *x)
     
     return res;
 }
+
 
 float residue_norm(System *sys, float *res)
 {

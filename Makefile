@@ -5,7 +5,7 @@ RM = rm -f
 OBJS = main.o system.o matrix.o utils.o
 LIBS = -lm
 OUTPUT = fatoracao
-CFLAGS = -g
+CFLAGS = -g 
 
 all: $(OBJS)
 	$(CC) $(OBJS) $(LIBS) -o $(OUTPUT)
@@ -30,8 +30,5 @@ clean limpar:
 	@$(RM) $(OBJS)
 
 purge faxina: clean
-	@echo "Aplicando cloro..."
-	@echo "Esfregando..."
-	@echo "Vish... derrubei o balde"
-	@echo "MÃE TRAZ O PANO"
+	@echo "Faxina..."
 	@$(RM) $(OUTPUT)
