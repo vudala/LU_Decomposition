@@ -4,11 +4,11 @@
 // Inicializa uma matrix
 float **new_matrix (unsigned int n);
 
-// Transforma uma matriz em uma matriz identidade
+// Escreve 1's na diagonal principal da matriz
 float **set_identity (float **matrix, unsigned int n);
 
 // Imprime a matriz em stdout
-void print_matrix (float **m, unsigned int n, unsigned int inverse);
+void print_matrix (FILE *output_file, float **m, unsigned int n, unsigned int inverse);
 
 // Libera o espaço de memória ocupado por uma matriz
 void free_matrix (float **mat);

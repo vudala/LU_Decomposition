@@ -4,8 +4,9 @@
 typedef struct {
     unsigned int n;
     float **A;
-    float **U;
     float **L;
+    float **U;
+    float **B;
 } System;
 
 // Inicializa um novo sistema
@@ -18,14 +19,12 @@ System *read_system ();
 void free_system (System *sys);
 
 // Realiza a triangularização
-double triangularization (System *sys, float **B, unsigned int pivot);
+double triangularization (System *sys, unsigned int piv);
 
-// Resolve um sistema através do método de Gauss-Jordan
-int gauss_jordan (float **A, float *x, float *b, unsigned int n);
+// Calcula a matriz inversa do sistema
+void invert (System *sys, float **x, double *x_total_time, double *y_total_time);
 
-// Imprime os resultados em stdout
-void print_result (System *sys, float **inverse, double time_tri, double time_y, double time_x, float **y, float **x);
-
-void invert (System *sys, float **x, float **B, double *x_total_time, double *y_total_time);
+// Imprime os resultados em output_file
+void print_result (FILE *output_file, System *sys, float **inverse, double time_tri, double time_y, double time_x);
 
 #endif

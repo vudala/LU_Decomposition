@@ -28,17 +28,17 @@ float **set_identity (float **matrix, unsigned int n)
 }
 
 
-void print_matrix (float **m, unsigned int n, unsigned int inverse)
+void print_matrix (FILE *output_file, float **m, unsigned int n, unsigned int inverse)
 {
     int i, j;
     for (i = 0; i < n; i++)
     {
         for (j = 0; j < n; j++)
             if (inverse)
-                printf("%f ", m[j][i]);
+                fprintf(output_file, "%f ", m[j][i]);
             else
-                printf("%f ", m[i][j]);
-        printf("\n");
+                fprintf(output_file, "%f ", m[i][j]);
+        fprintf(output_file, "\n");
     }
 }
 

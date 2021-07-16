@@ -14,6 +14,7 @@ System *new_system (unsigned int n)
 
     new->L = new_matrix(n);
     new->A = new_matrix(n);
+    new->B = set_identity(new_matrix(n), n);
     new->n = n;
 
     return new;
@@ -44,10 +45,12 @@ void free_system (System *sys)
     free_matrix(sys->A);
     free_matrix(sys->L);
     free_matrix(sys->U);
+    free_matrix(sys->B);
     free(sys);
 }
 
 
+// Realiza o pivoteamente de um sistema linear e suas partes
 void pivoting (float **A, float *b, float **B, float **L, unsigned int n)
 {
     float max, aux;
@@ -93,7 +96,7 @@ void pivoting (float **A, float *b, float **B, float **L, unsigned int n)
 }
 
 
-double triangularization (System *sys, float **B, unsigned int pivot)
+double triangularization (System *sys, unsigned int piv)
 {
     double time_tri = timestamp();
     int i, k, j;
@@ -101,8 +104,8 @@ double triangularization (System *sys, float **B, unsigned int pivot)
 
     for (k = 0; k < sys->n - 1; k++)
     {
-        if (pivot)
-            pivoting(sys->U, NULL, B, sys->L, sys->n);
+        if (piv)
+            pivoting(sys->U, NULL, sys->B, sys->L, sys->n);
             
         for (i = k + 1; i < sys->n; i++)
         {
@@ -118,12 +121,11 @@ double triangularization (System *sys, float **B, unsigned int pivot)
 
     set_identity(sys->L, sys->n);
 
-    time_tri = timestamp() - time_tri;
-
-    return time_tri;
+    return timestamp() - time_tri;
 }
 
 
+// Realiza a retrossubstituição para resolver um sistema
 int retrosubs (float **A, float *b, unsigned int n)
 {
     for (int i = n - 1; i >= 0; i--)
@@ -140,7 +142,8 @@ int retrosubs (float **A, float *b, unsigned int n)
 }
 
 
-int gauss_jordan (float **A, float *x, float *b, unsigned int n)
+// Resolve um sistema através do método de Gauss-Jordan
+void gauss_jordan (float **A, float *x, float *b, unsigned int n)
 {
     float **clone = clone_matrix(A, n);
     float *b_clone = malloc(sizeof(float) * n);
@@ -172,35 +175,38 @@ int gauss_jordan (float **A, float *x, float *b, unsigned int n)
 
     free_matrix(clone);
     free(b_clone);
-    
-    return 0;
+    clone = NULL;
+    b_clone = NULL;
 }
 
 
-float *get_column(float **B, unsigned int n, unsigned int col)
+float *get_column(float **mat, unsigned int n, unsigned int col)
 {
     float *column = malloc(sizeof(float) * n);
     must_alloc(column, __func__);
 
     for (int i = 0; i < n; i++)
-        column[i] = B[i][col];
+        column[i] = mat[i][col];
 
     return column;
 }
 
 
-void invert (System *sys, float **x, float **B, double *x_total_time, double *y_total_time)
+void invert (System *sys, float **x, double *x_total_time, double *y_total_time)
 {
     double time_y, time_x;
     float *column = NULL;
     float *y = malloc(sizeof(float) * sys->n);
     must_alloc(y, __func__);
 
-    for (int i = 0; i < sys->n; i++){
+    for (int i = 0; i < sys->n; i++)
+    {
         time_y = timestamp();
-        column = get_column(B, sys->n, i);
+
+        column = get_column(sys->B, sys->n, i);
         gauss_jordan(sys->L, y, column, sys->n);
         free(column);
+
         time_y = timestamp() - time_y;
 
         time_x = timestamp();
@@ -214,13 +220,14 @@ void invert (System *sys, float **x, float **B, double *x_total_time, double *y_
     *y_total_time /= sys->n;
     *x_total_time /= sys->n;
 
-    free_matrix(B);
     free(y);
+    y = NULL;
+    column = NULL;
 }
 
 
 // Calcula o resíduo de um sistema linear e sua solução
-float *residue (System *sys, float *y, float *x)
+float *residue (System *sys, float *b, float *x)
 {
     float *res = malloc(sys->n * sizeof(float));
     must_alloc(res, __func__);
@@ -228,54 +235,70 @@ float *residue (System *sys, float *y, float *x)
     int i, k;
     double ax;
 
-    for (i = 0; i < sys->n; i++){
+    for (i = 0; i < sys->n; i++)
+    {
         ax = 0.0f;
         for (k = 0; k < sys->n; k++)
             ax += sys->A[i][k] * x[k];
-        res[i] = y[i] - ax;
+        res[i] = b[i] - ax;
     }
     
     return res;
 }
 
 
-float residue_norm (System *sys, float *res)
+// Calcula a norma do resíduo
+float residue_norm (float *res, unsigned int n)
 {
     float sum = 0.0f;
-    for (int i = 0; i < sys->n; i++)
+
+    for (int i = 0; i < n; i++)
         sum += pow(res[i], 2.0f);
+
     return sqrt(sum);
 }
 
 
-void print_residues (System *sys, float **y, float **x)
+// Imprime as normas dos residuos
+void print_residues (FILE *output_file, System *sys, float **x)
 {
     float norm;
     float *res = NULL;
 
+    float **identity = set_identity(new_matrix(sys->n) , sys->n);
+
     for (int i = 0; i < sys->n; i++)
     {
-        res = residue(sys, y[i], x[i]);
-        norm = residue_norm(sys, res);
+        res = residue(sys, identity[i], x[i]);
+        norm = residue_norm(res, sys->n);
+        
         free(res);
-        printf("%f ", norm);
+        fprintf(output_file, "%f ", norm);
     }
 
-    printf("\n");
+    fprintf(output_file, "\n");
+
+    free_matrix(identity);
+    res = NULL;
 }
 
 
-void print_result (System *sys, float **inverse, double time_tri, double time_y, double time_x, float **y, float **x)
+void print_result (FILE *output_file, System *sys, float **inverse, double time_tri, double time_y, double time_x)
 {
-    printf("%u\n", sys->n);
-    print_matrix(sys->A, sys->n, 0);
-    printf("#\n");
-    print_matrix(inverse, sys->n, 1);
-    printf("###########\n");
-    printf("# Tempo Triangularização: %1.9f\n", time_tri);
-    printf("# Tempo cálculo de Y: %1.9f\n", time_y);
-    printf("# Tempo cálculo de X: %1.9f\n", time_x);
-    printf("# Norma L2 do Residuo: ");
-    print_residues(sys, y, x);
-    printf("###########\n");
+    fprintf(output_file, "%u\n", sys->n);
+    print_matrix(output_file, sys->A, sys->n, 0);
+
+    fprintf(output_file, "#\n");
+
+    print_matrix(output_file, inverse, sys->n, 1);
+
+    fprintf(output_file, "###########\n");
+
+    fprintf(output_file, "# Tempo Triangularização: %1.9f\n", time_tri);
+    fprintf(output_file, "# Tempo cálculo de Y: %1.9f\n", time_y);
+    fprintf(output_file, "# Tempo cálculo de X: %1.9f\n", time_x);
+    fprintf(output_file, "# Norma L2 do Residuo: ");
+    print_residues(output_file, sys, inverse);
+
+    fprintf(output_file, "###########\n");
 }
