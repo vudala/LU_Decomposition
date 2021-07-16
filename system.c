@@ -12,7 +12,7 @@ System *new_system (unsigned int n)
     System *new = (System*) malloc(sizeof(System));
     must_alloc(new, __func__);
 
-    new->L = set_identity(new_matrix(n), n);
+    new->L = new_matrix(n);
     new->A = new_matrix(n);
     new->n = n;
 
@@ -48,7 +48,7 @@ void free_system (System *sys)
 }
 
 
-void pivoting (float **A, float *b, unsigned int n)
+void pivoting (float **A, float *b, float **B, float **L, unsigned int n)
 {
     float max, aux;
     unsigned int max_index;
@@ -69,6 +69,17 @@ void pivoting (float **A, float *b, unsigned int n)
                 aux = A[k][c];
                 A[k][c] = A[max_index][c];
                 A[max_index][c] = aux;
+                
+                if (L && B)
+                {
+                    aux = L[k][c];
+                    L[k][c] = L[max_index][c];
+                    L[max_index][c] = aux;
+
+                    aux = B[k][c];
+                    B[k][c] = B[max_index][c];
+                    B[max_index][c] = aux;
+                }
             }
 
             if (b)
@@ -82,14 +93,17 @@ void pivoting (float **A, float *b, unsigned int n)
 }
 
 
-double triangularization (System *sys)
+double triangularization (System *sys, float **B, unsigned int pivot)
 {
     double time_tri = timestamp();
     int i, k, j;
     double m;
-    
+
     for (k = 0; k < sys->n - 1; k++)
     {
+        if (pivot)
+            pivoting(sys->U, NULL, B, sys->L, sys->n);
+            
         for (i = k + 1; i < sys->n; i++)
         {
             m = sys->U[i][k] / sys->U[k][k];
@@ -101,6 +115,8 @@ double triangularization (System *sys)
                 sys->U[i][j] -= (m * sys->U[k][j]);
         }
     }
+
+    set_identity(sys->L, sys->n);
 
     time_tri = timestamp() - time_tri;
 
@@ -135,10 +151,9 @@ int gauss_jordan (float **A, float *x, float *b, unsigned int n)
     int i, k, j;
     double m;
     
-    // Triangula usando o pivoteamento parcial
     for (k = 0; k < n - 1; k++)
     {
-        pivoting(clone, b_clone, n);
+        pivoting(clone, b_clone, NULL, NULL, n);
         for (i = k + 1; i < n; i++)
         {
             m = clone[i][k] / clone[k][k];
@@ -162,18 +177,30 @@ int gauss_jordan (float **A, float *x, float *b, unsigned int n)
 }
 
 
-void invert (System *sys, float **x, double *x_total_time, double *y_total_time)
+float *get_column(float **B, unsigned int n, unsigned int col)
+{
+    float *column = malloc(sizeof(float) * n);
+    must_alloc(column, __func__);
+
+    for (int i = 0; i < n; i++)
+        column[i] = B[i][col];
+
+    return column;
+}
+
+
+void invert (System *sys, float **x, float **B, double *x_total_time, double *y_total_time)
 {
     double time_y, time_x;
-
-    float **B = set_identity(new_matrix(sys->n), sys->n);
-
+    float *column = NULL;
     float *y = malloc(sizeof(float) * sys->n);
     must_alloc(y, __func__);
 
     for (int i = 0; i < sys->n; i++){
         time_y = timestamp();
-        gauss_jordan(sys->L, y, B[i], sys->n);
+        column = get_column(B, sys->n, i);
+        gauss_jordan(sys->L, y, column, sys->n);
+        free(column);
         time_y = timestamp() - time_y;
 
         time_x = timestamp();

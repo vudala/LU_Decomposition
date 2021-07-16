@@ -2,11 +2,11 @@ CC = gcc
 RM = rm -f
 OBJS = main.o system.o matrix.o utils.o
 LIBS = -lm
-OUTPUT = fatoracao
-CFLAGS =
+OUTPUT = matrixInv
+CFLAGS = -g
 
 all: $(OBJS)
-	$(CC) $(OBJS) $(LIBS) -o $(OUTPUT)
+	$(CC) $(CFLAGS) $(OBJS) $(LIBS) -o $(OUTPUT)
 
 main.o: main.c 
 	$(CC) -c $(CFLAGS) $(LIBS) main.c
