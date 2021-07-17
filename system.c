@@ -57,7 +57,7 @@ void pivoting (float **A, float *b, float **B, float **L, unsigned int n)
     unsigned int max_index;
     int i, k;
 
-    for (int k = 0; k < n - 1; k++)
+    for (k = 0; k < n - 1; k++)
     {
         max_index = k;
         max = fabs(A[k][k]);
