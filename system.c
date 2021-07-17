@@ -110,12 +110,17 @@ double triangularization (System *sys, unsigned int piv)
         for (i = k + 1; i < sys->n; i++)
         {
             m = sys->U[i][k] / sys->U[k][k];
+            check_exception(m);
 
             sys->L[i][k] = m;
             sys->U[i][k] = 0.0f;
 
             for (j = k + 1; j < sys->n; j++)
+            {
                 sys->U[i][j] -= (m * sys->U[k][j]);
+                check_exception(sys->U[i][j]);
+            }
+                
         }
     }
 
@@ -131,10 +136,14 @@ int retrosubs (float **A, float *b, unsigned int n)
     for (int i = n - 1; i >= 0; i--)
     {
         b[i] /= A[i][i];
+        check_exception(b[i]);
+
         A[i][i] = 1.0f;
         for (int j = i - 1; j >= 0; j--)
         {
             b[j] -= A[j][i] * b[i];
+            check_exception(b[j]);
+
             A[j][i] = 0.0f;
         }
     }
@@ -160,12 +169,17 @@ void gauss_jordan (float **A, float *x, float *b, unsigned int n)
         for (i = k + 1; i < n; i++)
         {
             m = clone[i][k] / clone[k][k];
+            check_exception(m);
 
             clone[i][k] = 0.0f;
             for (j = k + 1; j < n; j++)
+            {
                 clone[i][j] -= (m * clone[k][j]);
+                check_exception(clone[i][j]);
+            }
                 
             b_clone[i] -= m * b_clone[k];
+            check_exception(b_clone[i]);
         }
     }
 
@@ -239,7 +253,10 @@ float *residue (System *sys, float *b, float *x)
     {
         ax = 0.0f;
         for (k = 0; k < sys->n; k++)
+        {
             ax += sys->A[i][k] * x[k];
+            check_exception(ax);
+        }
         res[i] = b[i] - ax;
     }
     
