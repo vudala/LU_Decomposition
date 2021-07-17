@@ -20,9 +20,6 @@ matrix.o: matrix.c
 utils.o: utils.c 
 	$(CC) -c $(CFLAGS) $(LIBS) utils.c
 
-run: $(OUTPUT)
-	./$(OUTPUT) < input.in
-
 clean limpar:
 	@echo "Limpando..."
 	@$(RM) $(OBJS)
