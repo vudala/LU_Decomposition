@@ -2,11 +2,11 @@
 #define __SYSTEM__
 
 typedef struct {
-    unsigned int n;
-    float **A;
-    float **L;
-    float **U;
-    float **B;
+    unsigned int n; // Dimensão da matriz
+    float **A;      // Matriz original A
+    float **L;      // Matriz decomposta L
+    float **U;      // Matriz decomposta U
+    float **B;      // Matriz identidade
 } System;
 
 // Inicializa um novo sistema

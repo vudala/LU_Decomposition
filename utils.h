@@ -4,6 +4,9 @@
 #include <stdlib.h>
 #include <sys/time.h>
 
+#define SUCCES_STATUS_CODE  0
+#define FAILURE_STATUS_CODE 1
+
 // Certifica que um ponteiro foi alocado
 void must_alloc (void *ptr, const char* desc);
 
@@ -11,6 +14,6 @@ void must_alloc (void *ptr, const char* desc);
 double timestamp (void);
 
 // Checa se n é um número inválido
-void check_exception (float n);
+void check_exception (float n, const char *desc);
 
 #endif

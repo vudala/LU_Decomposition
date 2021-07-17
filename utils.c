@@ -9,7 +9,7 @@ void must_alloc (void *ptr, const char* desc)
     if (!ptr)
     {
         fprintf(stderr, "Malloc failure at %s.", desc);
-        exit(1);
+        exit(FAILURE_STATUS_CODE);
     }
 }
 
@@ -31,11 +31,11 @@ int invalid(float num)
 }
 
 
-void check_exception (float n)
+void check_exception (float n, const char *desc)
 {
     if (invalid(n))
     {
-        fprintf(stderr, "Floating point exception.\n");
-        exit(1);
+        fprintf(stderr, "Floating point exception at %s.\n", desc);
+        exit(FAILURE_STATUS_CODE);
     }
 }
