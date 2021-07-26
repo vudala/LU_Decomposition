@@ -11,6 +11,7 @@ int main(int argc, char **argv)
     FILE *output_file = stdout;
 
     int opt, pivoting = 0;
+
     while ((opt = getopt(argc, argv, "po:")) != -1)
         switch (opt)
         {
@@ -47,5 +48,5 @@ int main(int argc, char **argv)
 
     fclose(output_file);
 
-    return SUCCES_STATUS_CODE;
+    return SUCCESS_STATUS_CODE;
 }

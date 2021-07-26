@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <sys/time.h>
 
-#define SUCCES_STATUS_CODE  0
+#define SUCCESS_STATUS_CODE 0
 #define FAILURE_STATUS_CODE 1
 
 // Certifica que um ponteiro foi alocado

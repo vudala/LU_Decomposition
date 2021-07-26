@@ -120,7 +120,6 @@ double triangularization (System *sys, unsigned int piv)
                 sys->U[i][j] -= (m * sys->U[k][j]);
                 check_exception(sys->U[i][j], __func__);
             }
-                
         }
     }
 
@@ -131,66 +130,35 @@ double triangularization (System *sys, unsigned int piv)
 
 
 // Realiza a retrossubstituição para resolver um sistema
-int retrosubs (float **A, float *b, unsigned int n)
-{
-    for (int i = n - 1; i >= 0; i--)
-    {
-        b[i] /= A[i][i];
-        check_exception(b[i], __func__);
-
-        A[i][i] = 1.0f;
-        for (int j = i - 1; j >= 0; j--)
-        {
-            b[j] -= A[j][i] * b[i];
-            check_exception(b[j], __func__);
-
-            A[j][i] = 0.0f;
-        }
-    }
-    return 0;
-}
-
-
-// Resolve um sistema através do método de Gauss-Jordan
-void gauss_jordan (float **A, float *x, float *b, unsigned int n)
+void retrosubs_downward (float **A, float *x, float *b, unsigned int n)
 {
     float **clone = clone_matrix(A, n);
-    float *b_clone = malloc(sizeof(float) * n);
-    must_alloc(b_clone, __func__);
 
-    memcpy(b_clone, b, sizeof(float) * n);
-
-    int i, k, j;
-    double m;
-    
-    for (k = 0; k < n - 1; k++)
+    for (int i = 0; i < n; i++)
     {
-        pivoting(clone, b_clone, NULL, NULL, n);
-        for (i = k + 1; i < n; i++)
-        {
-            m = clone[i][k] / clone[k][k];
-            check_exception(m, __func__);
-
-            clone[i][k] = 0.0f;
-            for (j = k + 1; j < n; j++)
-            {
-                clone[i][j] -= (m * clone[k][j]);
-                check_exception(clone[i][j], __func__);
-            }
-                
-            b_clone[i] -= m * b_clone[k];
-            check_exception(b_clone[i], __func__);
-        }
+        x[i] = b[i];
+        for (int j = 0; j < i; j++)
+            x[i] -= clone[i][j] * x[j];
+        x[i] /= clone[i][i];
     }
 
-    retrosubs(clone, b_clone, n);
-    
-    memcpy(x, b_clone, sizeof(float) * n);
+    free_matrix(clone);
+}
+
+// Realiza a retrossubstituição para resolver um sistema
+void retrosubs_upward (float **A, float *x, float *b, unsigned int n)
+{
+    float **clone = clone_matrix(A, n);
+
+    for (int i = n - 1; i >= 0; i--)
+    {
+        x[i] = b[i];
+        for (int j = i + 1; j < n; j++)
+            x[i] -= clone[i][j] * x[j];
+        x[i] /= clone[i][i];
+    }
 
     free_matrix(clone);
-    free(b_clone);
-    clone = NULL;
-    b_clone = NULL;
 }
 
 
@@ -210,6 +178,7 @@ void invert (System *sys, float **x, double *x_total_time, double *y_total_time)
 {
     double time_y, time_x;
     float *column = NULL;
+
     float *y = malloc(sizeof(float) * sys->n);
     must_alloc(y, __func__);
 
@@ -218,13 +187,12 @@ void invert (System *sys, float **x, double *x_total_time, double *y_total_time)
         time_y = timestamp();
 
         column = get_column(sys->B, sys->n, i);
-        gauss_jordan(sys->L, y, column, sys->n);
+        retrosubs_downward(sys->L, y, column, sys->n);
         free(column);
-
         time_y = timestamp() - time_y;
-
+        
         time_x = timestamp();
-        gauss_jordan(sys->U, x[i], y, sys->n);
+        retrosubs_upward(sys->U, x[i], y, sys->n);
         time_x = timestamp() - time_x;
 
         *y_total_time += time_y;
@@ -234,8 +202,6 @@ void invert (System *sys, float **x, double *x_total_time, double *y_total_time)
     *y_total_time /= sys->n;
     *x_total_time /= sys->n;
 
-    free(y);
-    y = NULL;
     column = NULL;
 }
 
