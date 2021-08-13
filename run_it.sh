@@ -13,8 +13,8 @@ do
     RESULT=$(cat $LIKWID_OUTPUT | grep "RDTSC Runtime" | cut -d',' -f2)
     for r in $RESULT;
     do
-        echo "$N:$r" >> $AUX_FILE
+        echo "$N,$r" >> $AUX_FILE
     done
 done
-
+cat $AUX_FILE
 rm $AUX_FILE
