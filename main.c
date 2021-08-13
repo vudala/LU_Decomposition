@@ -6,8 +6,13 @@
 #include "matrix.h"
 #include "utils.h"
 
+#include <likwid.h>
+
 int main(int argc, char **argv)
 {
+
+    LIKWID_MARKER_INIT;
+
     FILE *output_file = stdout;
 
     int opt, pivoting = 0;
@@ -28,7 +33,9 @@ int main(int argc, char **argv)
         System *sys = read_system();
 
         // Separa o sistema em L e U
+        LIKWID_MARKER_START("triangularization");
         double time_tri = triangularization(sys, pivoting);
+        LIKWID_MARKER_STOP("triangularization");
         
         float **inverse = new_matrix(sys->n);
 
@@ -47,6 +54,8 @@ int main(int argc, char **argv)
     }
 
     fclose(output_file);
+    
+    LIKWID_MARKER_CLOSE;
 
     return SUCCESS_STATUS_CODE;
 }
