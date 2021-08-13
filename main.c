@@ -28,30 +28,29 @@ int main(int argc, char **argv)
                 break;
         }
 
-    while (!feof(stdin))
-    {
-        System *sys = read_system();
+    
+    System *sys = read_system();
 
-        // Separa o sistema em L e U
-        LIKWID_MARKER_START("triangularization");
-        double time_tri = triangularization(sys, pivoting);
-        LIKWID_MARKER_STOP("triangularization");
-        
-        float **inverse = new_matrix(sys->n);
+    // Separa o sistema em L e U
+    LIKWID_MARKER_START("triangularization");
+    double time_tri = triangularization(sys, pivoting);
+    LIKWID_MARKER_STOP("triangularization");
+    
+    float **inverse = new_matrix(sys->n);
 
-        // Inverte a matriz e registra o tempo tomado
-        double time_y = 0.0f, time_x = 0.0f;
-        invert(sys, inverse, &time_y, &time_x);
-        
-        // Imprime os resultados
-        print_result(output_file, sys, inverse, time_tri, time_y, time_x);
+    // Inverte a matriz e registra o tempo tomado
+    double time_y = 0.0f, time_x = 0.0f;
+    invert(sys, inverse, &time_y, &time_x);
+    
+    // Imprime os resultados
+    print_result(output_file, sys, inverse, time_tri, time_y, time_x);
 
-        free_system(sys);
-        free_matrix(inverse);
+    free_system(sys);
+    free_matrix(inverse);
 
-        sys = NULL;
-        inverse = NULL;
-    }
+    sys = NULL;
+    inverse = NULL;
+    
 
     fclose(output_file);
     

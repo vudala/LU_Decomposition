@@ -61,6 +61,6 @@ print(N)
 for i in fm :
     for j in i :
         print(j, end=" ")
-    print("")
+    print()
 
 #FIM
