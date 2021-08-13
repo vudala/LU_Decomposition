@@ -1,7 +1,7 @@
 N_LIST="10 32 50 64 100 128 200 256 300 400 512 1000"
 PROGRAM=./matrixInv
-
-
+INPUT_FILE=input.in
+LIKWID_OUTPUT=likwid_out.csv
 AUX_FILE=auxx.tmp
 
 for N in $N_LIST;
