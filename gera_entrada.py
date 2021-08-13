@@ -58,10 +58,6 @@ for j in range (0,M) :
 
 # Gera saída
 print(N)
-for i in x :
-    print(i, end=" ")
-
-print("")
 for i in fm :
     for j in i :
         print(j, end=" ")
