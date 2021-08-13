@@ -67,6 +67,4 @@ for i in fm :
         print(j, end=" ")
     print("")
 
-print("")
-
 #FIM
