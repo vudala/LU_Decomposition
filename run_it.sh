@@ -11,7 +11,7 @@ for N in $N_LIST;
 do
     python3 gera_entrada.py $N $N > $INPUT_FILE
 
-    likwid-perfctr -C 3 -g L3 -o $LIKWID_OUTPUT -m $PROGRAM < $INPUT_FILE > /dev/null
+    likwid-perfctr -C 3 -g L3 -o $LIKWID_OUTPUT -m "$PROGRAM -p" < $INPUT_FILE > /dev/null
 
     RESULT=$(cat $LIKWID_OUTPUT | grep "L3 bandwidth"  | cut -d',' -f2)
     for r in $RESULT;
@@ -25,7 +25,7 @@ do
         echo -n ",$r" >> $AUX_FILE
     done
 
-    likwid-perfctr -C 3 -g L2CACHE -o $LIKWID_OUTPUT -m $PROGRAM < $INPUT_FILE > /dev/null
+    likwid-perfctr -C 3 -g L2CACHE -o $LIKWID_OUTPUT -m "$PROGRAM -p" < $INPUT_FILE > /dev/null
 
     RESULT=$(cat $LIKWID_OUTPUT | grep "L2 miss ratio" | cut -d',' -f2)
     for r in $RESULT;
@@ -33,7 +33,7 @@ do
         echo -n ",$r" >> $AUX_FILE
     done
 
-    likwid-perfctr -C 3 -g FLOPS_DP -o $LIKWID_OUTPUT -m $PROGRAM < $INPUT_FILE > /dev/null
+    likwid-perfctr -C 3 -g FLOPS_DP -o $LIKWID_OUTPUT -m "$PROGRAM -p" < $INPUT_FILE > /dev/null
     
     RESULT_FLT=$(cat $LIKWID_OUTPUT | grep -v "AVX" | grep "DP MFLOP/s" | cut -d',' -f2)
     for r in $RESULT_FLT;
