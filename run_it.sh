@@ -36,16 +36,17 @@ do
     likwid-perfctr -C 3 -g FLOPS_DP -o $LIKWID_OUTPUT -m $PROGRAM < $INPUT_FILE > /dev/null
     
     RESULT_FLT=$(cat $LIKWID_OUTPUT | grep -v "AVX" | grep "DP MFLOP/s" | cut -d',' -f2)
-    for r in $RESULT;
+    for r in $RESULT_FLT;
     do
         echo -n ",$r" >> $AUX_FILE
     done
 
     RESULT_AVX=$(cat $LIKWID_OUTPUT | grep "AVX" | cut -d',' -f2)
-    for r in $RESULT;
+    for r in $RESULT_AVX;
     do
         echo ",$r" >> $AUX_FILE
     done
 done
+
 cat $AUX_FILE
 rm $AUX_FILE
